@@ -26,7 +26,7 @@ controller/UserController.js
 ```javascript
 const rp = require('request-promise');
 const config = require('../server/config');
-import {Controller, RequestMapping, RequestMethod} from '../utils/koa-router-controller/KoaRouterController';
+import {Controller, RequestMapping, RequestMethod} from 'krc';
 
 @Controller("/User")
 class User{

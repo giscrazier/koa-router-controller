@@ -1,0 +1,27 @@
+{
+  "name": "krc",
+  "version": "v1.0.2",
+  "description": "基于koa-router的前端控制器",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giscrazier/koa-router-controller.git"
+  },
+  "keywords": [
+    "controller",
+    "koa2"
+  ],
+  "author": "gissky",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/giscrazier/koa-router-controller/issues"
+  },
+  "homepage": "https://github.com/giscrazier/koa-router-controller#readme",
+
+  "dependencies":{
+    "koa-router": "^7.4.0"
+  }
+}
