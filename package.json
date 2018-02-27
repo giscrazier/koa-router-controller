@@ -1,6 +1,6 @@
 {
   "name": "krc",
-  "version": "v1.0.2",
+  "version": "v1.0.3",
   "description": "基于koa-router的前端控制器",
   "main": "index.js",
   "scripts": {
@@ -20,8 +20,8 @@
     "url": "https://github.com/giscrazier/koa-router-controller/issues"
   },
   "homepage": "https://github.com/giscrazier/koa-router-controller#readme",
-
-  "dependencies":{
+  "dependencies": {
+    "formidable": "^1.1.1",
     "koa-router": "^7.4.0"
   }
 }

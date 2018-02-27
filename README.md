@@ -51,3 +51,57 @@ module.exports = User;
 `@Controller`标识该模块为控制器，参数是控制器的第一层路径，`@RequestMapping`的第一个参数是控制器的子路径，第二个参数为一个数组，用于为控制器指定多个访问方式。
 
 `krc`中任然可以使用`ctx`，`next`等原来`koa-router`的async函数的参数。因为他们在同一个作用域链中。但是要返回给前台的JSON数据不要使用`ctx.body = data`来指定，直接`return data`即可。
+
+## 数据类型
+可以接收流数据，表单数据，文件上传
+- 流数据
+```javascript
+fetch('/User/getAll',{
+			method:'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+                page:{currentPage:1, pageSize:10},
+				sessionId: localStorage.getItem('sessionId')
+			})
+		})
+```
+后台拿到数据：
+```javascript
+{
+    page:{currentPage:1, pageSize:10},
+    sessionId: localStorage.getItem('sessionId')
+}
+```
+- 文件上传，表单数据
+利用antd上传文件：
+```javascript
+const styleProps = {
+            action: 'http://localhost:8091/upload',
+            onChange:this.uploadChange,
+            headers: {
+                authorization: 'authorization-text',
+            },
+            multiple: false,
+        };
+<FormItem
+    label="样式文件"
+>
+    {getFieldDecorator('style', {
+        rules: [{ required: true, message: '样式文件' }],
+    })(
+        <Upload name="style" {...styleProps}>
+            <Button style={{width:230}}>
+                <Icon type="upload" /> upload
+            </Button>
+        </Upload>
+    )}
+</FormItem>
+```
+在控制器中拿到的数据为：
+```javascript
+{
+    files:{style:{data:file,}}
+}
+```
