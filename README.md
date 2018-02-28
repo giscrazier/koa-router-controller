@@ -100,3 +100,5 @@ const styleProps = {
     files:{style:{data:file,}}
 }
 ```
+
+如果好用，可以star下 :clap: :clap: :clap:
