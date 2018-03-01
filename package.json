@@ -1,6 +1,6 @@
 {
   "name": "krc",
-  "version": "v1.0.5",
+  "version": "v1.0.6",
   "description": "基于koa-router的前端控制器",
   "main": "index.js",
   "scripts": {

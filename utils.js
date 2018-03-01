@@ -6,8 +6,32 @@
 const formidable = require('formidable');
 var fs = require("fs");
 
-function parsePostData( ctx ) {
-    return new Promise((resolve, reject) => {
+function param2Json(ctx) {
+    return new Promise((resolve, reject)=>{
+        let postdata = "";
+        ctx.req.addListener('data', (data) => {
+            postdata += data
+        });
+        ctx.req.addListener("end",function(){
+            //let parseData = parseQueryStr( postdata )
+            let parseData ={};
+            try{
+                parseData = JSON.parse(postdata);
+            }catch(e){
+                //ctx.onerror(e);
+                if(postdata.length!==0){
+                    console.error("请求参数格式有误，请传递能转换为JSON格式的参数。");
+                }else {
+                    parseData = ctx.request.query;
+                }
+            }
+            resolve( parseData );
+        });
+    });
+}
+
+async function parsePostData( ctx ) {
+    let data = await new Promise((resolve, reject) => {
         try {
             switch (ctx.request.type){
                 case ctx.is("multipart/form-data"):{
@@ -28,32 +52,22 @@ function parsePostData( ctx ) {
                     });
                     break;
                 }
-                case ctx.is("text/plain"):{
-                    let postdata = "";
-                    ctx.req.addListener('data', (data) => {
-                        postdata += data
-                    });
-                    ctx.req.addListener("end",function(){
-                        //let parseData = parseQueryStr( postdata )
-                        let parseData ={};
-                        try{
-                            parseData = JSON.parse(postdata);
-                        }catch(e){
-                            //ctx.onerror(e);
-                            if(postdata.length!==0){
-                                console.log("请求参数格式有误，请传递能转换为JSON格式的参数。")
-                            }
-                        }
-                        resolve( parseData );
-                    });
-                    break
+                case ctx.is("text/plain"):
+                case ctx.is("application/json"):{
+                    let data = param2Json(ctx);
+                    resolve(data);
+                    break;
+                }
+                default:{
+                    resolve({});
                 }
             }
 
         } catch ( err ) {
             reject(err)
         }
-    })
+    });
+    return data;
 }
 
 // 将POST请求参数字符串解析成JSON
@@ -74,4 +88,3 @@ function parseQueryStr( queryStr ) {
 
 let urils = {parsePostData};
 module.exports = urils;
-
