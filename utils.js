@@ -34,7 +34,7 @@ async function parsePostData( ctx ) {
     let data = await new Promise((resolve, reject) => {
         try {
             switch (ctx.request.type){
-                case ctx.is("multipart/form-data"):{
+                case "multipart/form-data": {
                     var form = new formidable.IncomingForm();
                     form.parse(ctx.req, function(err, fields, files) {
                         if(err){
@@ -52,8 +52,8 @@ async function parsePostData( ctx ) {
                     });
                     break;
                 }
-                case ctx.is("text/plain"):
-                case ctx.is("application/json"):{
+                case "text/plain":
+                case "application/json": {
                     let data = param2Json(ctx);
                     resolve(data);
                     break;
@@ -86,5 +86,5 @@ function parseQueryStr( queryStr ) {
     return queryData
 }
 
-let urils = {parsePostData};
-module.exports = urils;
+let utils = {parsePostData};
+module.exports = utils;

@@ -2,6 +2,21 @@
  * 基于koa-router 的controller
  * Created by yyl on 2018/2/6.
  */
+
+let register = require('babel-register');
+//配置node识别import
+register({
+    plugins:["transform-decorators-legacy"],
+    presets: [ [
+        "env",{
+            "targets":{
+                "node": "current"
+            }
+        }
+    ]],
+    extensions: [ '.js' ]
+});
+
 import ControlData from './ControlData';
 import Controller from './Controller';
 import RequestMapping from './RequestMapping';
@@ -30,6 +45,9 @@ function KoaRouterController(cfg) {
     for (let f of js_files) {
         console.log(`process controller: ${f}...`);
         let rule = require(opts.scanPath + '/' + f);
+        if( !(rule instanceof Function)){
+            continue;
+        }
         let controlInstance = new rule();
 
         let controlModel = ControlData.get(controlInstance.constructor);
@@ -39,7 +57,7 @@ function KoaRouterController(cfg) {
                 for (let i=0, len=path.method.length; i<len; i++){
                     let m = path.method[i];
                     opts.router[m](`${controlModel.root || ""}${path.path}`,
-                        async function (ctx, next) {
+                        async (ctx) => {
                             ctx.type = "application/json; charset=utf-8";
                             const postData = await utils.parsePostData(ctx);
                             const data = await controlInstance[path.funName](postData);
