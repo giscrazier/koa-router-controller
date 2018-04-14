@@ -3,25 +3,11 @@
  * Created by yyl on 2018/2/6.
  */
 
-let register = require('babel-register');
-//配置node识别import
-register({
-    plugins:["transform-decorators-legacy"],
-    presets: [ [
-        "env",{
-            "targets":{
-                "node": "current"
-            }
-        }
-    ]],
-    extensions: [ '.js' ]
-});
-
-import ControlData from './ControlData';
-import Controller from './Controller';
-import RequestMapping from './RequestMapping';
-import RequestMethod from './RequestMethod';
-import * as utils from "./utils";
+const ControlData = require('./ControlData');
+const Controller = require('./Controller');
+const RequestMapping = require('./RequestMapping');
+const RequestMethod = require('./RequestMethod');
+const utils = require("./utils");
 
 const Router = require('koa-router');
 const fs = require('fs');

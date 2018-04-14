@@ -2,8 +2,9 @@
  *
  * Created by yyl on 2018/2/6.
  */
-import ControlData from './ControlData';
-import Model from './Model';
+
+const ControlData = require('./ControlData');
+const Model = require("./Model");
 
 function RequestMapping(value, method) {
     return function (target, name, descriptor) {
