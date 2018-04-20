@@ -1,63 +1,67 @@
 /**
- * 基于koa-router 的controller
- * Created by yyl on 2018/2/6.
+ * 使用esri-loader提供的dojoRequire时，模式还是dojoRequire([],fun)的形式，
+ * 为了彻底的转到es6，该模块利用Callbacks机制，提供了esri模块新的加载方式。使得代码可以完全按照es6的形式进行组织。
+ * Created by yyl on 2017/12/8.
  */
 
-const ControlData = require('./ControlData');
-const Controller = require('./Controller');
-const RequestMapping = require('./RequestMapping');
-const RequestMethod = require('./RequestMethod');
-const utils = require("./utils");
+//这里是公用的方法
+import {loadModules} from 'esri-loader';
+import gp from './GlobalPromise';
 
-const Router = require('koa-router');
-const fs = require('fs');
+let __esri__ = Symbol();
 
-let defaultOpts = {
-    scanPath: "",
-    router: new Router()
-};
-let opts = null;
-
-function KoaRouterController(cfg) {
-    opts = Object.assign({}, defaultOpts, cfg);
-
-    // 得到 /controller 所有以js结尾的文件
-    let files = fs.readdirSync(opts.scanPath);
-    let js_files = files.filter((f) => {
-        return f.endsWith('.js');
-    });
-
-    //注册controller
-    for (let f of js_files) {
-        console.log(`process controller: ${f}...`);
-        let rule = require(opts.scanPath + '/' + f);
-        if( !(rule instanceof Function)){
-            continue;
-        }
-        let controlInstance = new rule();
-
-        let controlModel = ControlData.get(controlInstance.constructor);
-        if(controlModel && controlModel.control){
-            controlModel.paths.forEach(path=>{
-                //一个方法有多个访问接口，如get,post等等
-                for (let i=0, len=path.method.length; i<len; i++){
-                    let m = path.method[i];
-                    opts.router[m](`${controlModel.root || ""}${path.path}`,
-                        async (ctx) => {
-                            ctx.type = "application/json; charset=utf-8";
-                            const postData = await utils.parsePostData(ctx);
-                            const data = await controlInstance[path.funName](postData);
-                            ctx.body = data;
-                        })
-                }
-            })
-        }
+/**
+ * 为类添加静态属性esri对象，它属性为要添加进来的esri模块
+ * @param classes 要添加的esri模块
+ * @returns {function(*=)} 修饰器函数
+ */
+function importEsri(classes) {
+    return (target)=>{
+        target[__esri__] = new Promise(resolve=>{
+            gp.then(()=>{
+                return loadModules(classes,{
+                    url: importEsri.libraryRoot
+                });
+            }).then(function () {
+                let ags = arguments[0];
+                let args = classes.map(function (cls) {
+                    let clz = cls.split('/');
+                    return clz[clz.length - 1];
+                });
+                target.esri={};
+                args.forEach((arg,idx)=>{
+                    target.esri[arg] = ags[idx];
+                });
+                resolve(target.esri);
+            }).catch((err)=>{
+                console.error(err);
+                target.esri={};
+                resolve(target.esri);
+            });
+        });
     }
 }
 
-module.exports = {
-    KoaRouterController,
-    Controller,
-    RequestMapping,
-    RequestMethod
-};
+//指定ArcGIS For JavaScript API 的入口
+importEsri.libraryRoot = "https://js.arcgis.com/4.5/";
+
+/**
+ * 修饰类方法，改修饰器必须基于@importEsri类修饰器使用，它修饰类的方法，
+ * 将被修饰的方法变为async函数，等esri的模块完全加载后才执行
+ * @param target
+ * @param name
+ * @param descriptor
+ * @returns {*}
+ */
+function awaitEsri(target, name, descriptor) {
+    let oldFun =  target[name];
+    descriptor.value=function () {
+        let promise = this.__proto__.constructor[__esri__];
+        return promise.then(()=>{
+            return Promise.resolve(oldFun.apply(this,arguments))
+        });
+    };
+    return descriptor;
+}
+
+export {importEsri, awaitEsri};
