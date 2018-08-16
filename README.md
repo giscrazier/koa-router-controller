@@ -10,7 +10,7 @@ Map.js
 ```javascript
 import React,{Component} from 'react';
 import {importEsri, awaitEsri} from 'esri-import';
-//指定ArcGIS For JavaScript 的入口，系统中只需指定一次，默认为：https://js.arcgis.com/4.5/init.js。
+//指定ArcGIS For JavaScript 的入口，系统中只需指定一次，默认为：https://js.arcgis.com/4.8/。
 importEsri.libraryRoot = "http://localhost:8080/arcgis_js_api/library/4.5/init.js";
 
 @importEsri([
