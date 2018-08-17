@@ -6,7 +6,6 @@
 
 //这里是公用的方法
 import {loadModules} from 'esri-loader';
-let gp = Promise.resolve();
 
 let __esri__ = Symbol();
 
@@ -17,33 +16,37 @@ let __esri__ = Symbol();
  */
 function importEsri(classes) {
     return (target)=>{
+        target.esri={};
         target[__esri__] = new Promise(resolve=>{
-            gp.then(()=>{
+            //加载自身引用的ags类
+            let selfPromise = Promise.resolve().then(()=>{
                 return loadModules(classes,{
                     url: importEsri.libraryRoot
                 });
-            }).then(function () {
-                let ags = arguments[0];
-                let args = classes.map(function (cls) {
-                    let clz = cls.split('/');
-                    return clz[clz.length - 1];
-                });
-                if (target.esri) {
-                    console.info('父类已经有该属性，子类重写该属性');
-                    target.esri = Object.assign({}, target.esri);
-                }else {
-                    target.esri={};
-                }
-
-                args.forEach((arg,idx)=>{
-                    target.esri[arg] = ags[idx];
-                });
-                resolve(target.esri);
-            }).catch((err)=>{
-                console.error(err);
-                target.esri={};
-                resolve(target.esri);
             });
+            //解决继承出现的问题，因为子类继承父类，虽然父类先去加载ags 类，但是如果父类加载的类比较多，就迟与子类的返回，导致，子类已经运行，父类还卡着。
+            //父类加__esri__,他resolve的是父类的esri属性
+            let parent__esri__ = target.__proto__[__esri__];
+            Promise.all([selfPromise, parent__esri__])
+                .then(([selfClz, parentEsri])=>{
+                    let ags = selfClz;
+                    let args = classes.map(function (cls) {
+                        let clz = cls.split('/');
+                        return clz[clz.length - 1];
+                    });
+
+                    args.forEach((arg,idx)=>{
+                        target.esri[arg] = ags[idx];
+                    });
+
+                    //将父类加载的ags类copy到子类中。
+                    Object.assign(target.esri,parentEsri);
+                    resolve(target.esri);
+                })
+                .catch((err)=>{
+                    console.error(err);
+                    resolve(target.esri);
+                });
         });
     }
 }
@@ -54,9 +57,15 @@ importEsri.libraryRoot = "https://js.arcgis.com/4.8/";
 /**
  * 修饰类方法，改修饰器必须基于@importEsri类修饰器使用，它修饰类的方法，
  * 将被修饰的方法变为async函数，等esri的模块完全加载后才执行
- * @param target
+ * @param target  类的原型对象
  * @param name
- * @param descriptor
+ * @param descriptor   descriptor对象原来的值如下
+ *                      {
+ *                        value: specifiedFunction,
+ *                        enumerable: false,
+ *                        configurable: true,
+ *                        writable: true
+ *                      };
  * @returns {*}
  */
 function awaitEsri(target, name, descriptor) {
