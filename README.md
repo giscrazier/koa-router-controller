@@ -1,68 +1,104 @@
-# esri-import
-基于注解的ArcGIS For JavaScript 模块加载器。
-
-#安装
+# krc
+基于koa-router的前端控制器。
+## 安装
 ```shell
-$ npm install esri-import --save
+$ npm install krc --save
 ```
 ## 使用
-Map.js
+app.js
 ```javascript
-import React,{Component} from 'react';
-import {importEsri, awaitEsri} from 'esri-import';
-//指定ArcGIS For JavaScript 的入口，系统中只需指定一次，默认为：https://js.arcgis.com/4.8/。
-importEsri.libraryRoot = "http://localhost:8080/arcgis_js_api/library/4.8/init.js";
+import Koa from 'koa';
+import path from 'path';
+import {KoaRouterController} from 'krc';
+const Router = require('koa-router');
 
-@importEsri([
-    'esri/Map',
-    "esri/Color",
-    "esri/views/MapView",
-    "esri/layers/TileLayer",
-    "esri/geometry/Polyline",
-    "esri/Graphic",
-    "esri/layers/GraphicsLayer",
-    "esri/layers/MapImageLayer"])
-export default class Map extends Component{
-    @awaitEsri
-    componentDidMount() {
-        
-        let esri = Map.esri;
-        this.map = new esri.Map({
-            basemap:'streets-night-vector'
+const app = new Koa();
+const router = new Router();
+
+KoaRouterController({
+    scanPath: path.join(__dirname, '../controller'),
+    router: router
+});
+```
+`KoaRouterController`接受一个options，`scanPath`表示krc的扫描路径，它会将该路径下所有注解为`@Controller`的模块设置为一个控制器。router可选。
+
+controller/UserController.js
+```javascript
+const rp = require('request-promise');
+import {Controller, RequestMapping, RequestMethod} from 'krc';
+
+@Controller("/user")
+class User{
+	@RequestMapping("/getAll", [RequestMethod.POST])
+    list (postData) {
+        let options = {
+            method: 'POST',
+            url: 'http://localhost:8080/api/user/getAll',
+            body:postData,
+            json: true
+        };
+        return new Promise((resolve)=>{
+            rp(options).then(data=>{
+                resolve(data);
+            })
         });
-
-        let view = new esri.MapView({
-            center:[119.297999,26.074068],
-            map: this.map,
-            zoom: 8,
-            popup: {
-                dockEnabled: true,
-                dockOptions: {
-                    position: 'bottom-left'
-                }
-            },
-            container: this.mapContainer
-        });
-    };
-
-    @awaitEsri
-    componentWillReceiveProps(nextProps){
-        //这里可以更新地图
-    }
-
-    //一般地图组件不要让它重新渲染
-    shouldComponentUpdate(){
-        return false;
-    }
-    render(){
-        return <div ref={node => this.mapContainer = node}/>
     }
 }
+
+module.exports = User;
 ```
+`@Controller`标识该模块为控制器，参数是控制器的第一层路径，也可以不写参数。`@RequestMapping`的第一个参数是控制器的子路径，第二个参数为一个数组，用于为控制器指定多个访问方式。这样构造出来的url便是：`http:ip:port/user/getAll`
 
-首先为`importEsri`指定了ArcGIS For JavaScript 的入口，也可以不指定，默认为https://js.arcgis.com/4.8/。
-`importEsri`接收一个数组，用来来注解一个类，它会为该类添加一个静态属性`esri`。该静态属性中包含了你所导入的esri JavaScript模块，支持继承，父类加载的esri模块会植入子类的esri模块。
+`krc`的controller中任然可以使用`ctx`，`next`等原来`koa-router`的async函数的参数。因为他们在同一个作用域链中。但是要返回给前台的JSON数据不要使用`ctx.body = data`来指定，直接`return data`即可。
 
-当要使用这些导入的模块时，最好为相应的方法添加`@awaitEsri`注解，它可以确保你所注解的方法在模块完全加载完成才执行，但是要知道，添加了该注解后，你的方法的返回值就变成了`Promise`,如果你的方法有返回值，则须通过`promise`的`then`方法来获取。
+## 数据类型
+可以接收流数据，表单数据，文件上传
+- 流数据
+```javascript
+fetch('/User/getAll',{
+    method:'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        page:{currentPage:1, pageSize:10}
+    })
+})
+```
+在`krc`控制器中拿到的数据：
+```javascript
+{
+    page:{currentPage:1, pageSize:10}
+}
+```
+- 文件上传，表单数据
+利用antd上传文件：
+```javascript
+const styleProps = {
+            action: 'http://localhost:8091/upload',
+            onChange:this.uploadChange,
+            headers: {
+                authorization: 'authorization-text',
+            },
+            multiple: false,
+        };
+<FormItem
+    label="样式文件"
+>
+    {getFieldDecorator('style')(
+        <Upload name="style" {...styleProps}>
+            <Button style={{width:230}}>
+                <Icon type="upload" /> upload
+            </Button>
+        </Upload>
+    )}
+</FormItem>
+```
+在`krc`控制器中拿到的数据：
+```javascript
+{
+    files:{style:{data:file,}}
+}
+```
 
 如果好用，可以star下 :clap: :clap: :clap:

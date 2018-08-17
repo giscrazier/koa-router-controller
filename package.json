@@ -1,40 +1,27 @@
 {
-  "name": "esri-import",
-  "version": "2.1.0",
-  "description": "基于注解的ArcGIS For JavaScript 模块加载器。",
+  "name": "krc",
+  "version": "v1.0.9",
+  "description": "基于koa-router的前端控制器",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src -d dist",
-    "babel": "babel"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/giscrazier/importEsriModel.git"
+    "url": "git+https://github.com/giscrazier/koa-router-controller.git"
   },
   "keywords": [
-    "esri",
-    "loader"
+    "controller",
+    "koa2"
   ],
   "author": "gissky",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/giscrazier/importEsriModel/issues"
+    "url": "https://github.com/giscrazier/koa-router-controller/issues"
   },
-  "homepage": "https://github.com/giscrazier/importEsriModel#readme",
+  "homepage": "https://github.com/giscrazier/koa-router-controller#readme",
   "dependencies": {
-    "esri-loader": "^2.2.0"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-plugin-import": "^1.8.0",
-    "babel-plugin-react-transform": "^3.0.0",
-    "babel-plugin-transform-decorators-legacy": "^1.3.5",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-stage-0": "^6.24.1"
+    "formidable": "^1.1.1",
+    "koa-router": "^7.4.0"
   }
 }
